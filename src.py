@@ -14,7 +14,7 @@ import stringmanipulation as sm
 import aiohttp
 import asyncio
 import json
-
+import time
 
 def openbrowser(url):
     options = Options() #Chrome
@@ -29,7 +29,7 @@ def openbrowser(url):
     wd.close()
     return wd, wait
 
-def httprequesturlhome(url):
+def get_pages(url):
     headers = {"User-Agent": "Mozilla/5.0"}
 
     # Send an HTTP request
@@ -65,17 +65,22 @@ def get_id(url):
     else:
         print("Error: Failed to retrieve the page. Status Code:", response.status_code)
 
-def httprequestpages(urls):
-    headers = {"User-Agent": "Mozilla/5.0"}
+headers = {"User-Agent": "Mozilla/5.0"}
 
-    async def fetch(session, id_):
-        url = f'https://meadowcreekhs.gcpsk12.org/fs/elements/55800?const_id={id_}&show_profile=true&is_draft=false'
-        async with session.get(url, headers=headers) as response:
-            html = await response.text()
-            soup = BeautifulSoup(html, "html.parser")
+async def fetch(session, id_):
+    url = f'https://meadowcreekhs.gcpsk12.org/fs/elements/55800?const_id={id_}&show_profile=true'
+    async with session.get(url, headers=headers) as response:
+        await asyncio.sleep(5)
+        html = await response.text()
+        # Check if request was successful
+        if response.status == 200:
+            soup = BeautifulSoup(html, "html.parser")  # Parse HTML content
+            # print(soup.prettify())  # Print formatted HTML for debugging
+
             first_name = soup.find("span", class_="fsFullNameFirst").text.strip()
             last_name = soup.find("span", class_="fsFullNameLast").text.strip()
-
+            script_content = soup.find("script").string
+            email = sm.get_email(script_content)
             # Find all "fsProfileSectionFieldValue" elements
             field_values = soup.find_all("div", class_="fsProfileSectionFieldValue")
 
@@ -87,21 +92,34 @@ def httprequestpages(urls):
                 "firstname": first_name,
                 "lastname": last_name,
                 "title": title,
-                "department": department
+                "department": department,
+                "email": email
             }
 
             # Convert to JSON format
             json_output = json.dumps(data, indent=4)
             print(f"Scraped {url} successfully!")
-            return json_output
+            print(json_output)
 
+        else:
+                print("Error: Failed to retrieve the page. Status Code:", response.status_code)
 
-    async def scrape_all():
-        async with aiohttp.ClientSession() as session:
-            for url in urls:
-                await fetch(session, url)
-                await asyncio.sleep(5)  # Respect crawl delay
+async def scrape_all(id_all):
+    async with aiohttp.ClientSession() as session:
+        results = []
+        for url in id_all:
+            start_time = time.time()
+            soup = await fetch(session, url)
+            results.append(soup)
+            elapsed_time = time.time() - start_time
+            if elapsed_time < 5:
+                await asyncio.sleep(5 - elapsed_time)  # Ensure minimum delay
+        return results
 
-    return asyncio.run(scrape_all())
+all_pages = get_pages(r'https://meadowcreekhs.gcpsk12.org/directory')
 
-
+nested_id = []
+for page in all_pages: #compile ALL IDS
+    nested_id.append(get_id(page))
+all_ids = list(set([item for sublist in nested_id for item in sublist]))
+asyncio.run(scrape_all(all_ids))

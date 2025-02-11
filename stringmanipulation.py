@@ -12,7 +12,7 @@ def getpages(stringresult):
         # print("Extracted Number:", number)
         pages = math.ceil(number/100)
         for page in range(1, pages + 1):
-            page_meadows = f'https://meadowcreekhs.gcpsk12.org/directory?const_page={str(page)}&'
+            page_meadows = f'https://meadowcreekhs.gcpsk12.org/fs/elements/55800?const_page={str(page)}&is_draft=false&is_load_more=true&page_id=7498&parent_id=55800&_={str(page)}'
             page_links.append(page_meadows)
         return page_links
     else:

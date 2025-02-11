@@ -36,7 +36,8 @@ def use_id(url):
 
         first_name = soup.find("span", class_="fsFullNameFirst").text.strip()
         last_name = soup.find("span", class_="fsFullNameLast").text.strip()
-
+        script_content = soup.find("script").string
+        email = sm.get_email(script_content)
         # Find all "fsProfileSectionFieldValue" elements
         field_values = soup.find_all("div", class_="fsProfileSectionFieldValue")
 
@@ -48,7 +49,8 @@ def use_id(url):
             "firstname": first_name,
             "lastname": last_name,
             "title": title,
-            "department": department
+            "department": department,
+            "email" : email
         }
 
         # Convert to JSON format
