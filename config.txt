@@ -1,0 +1,27 @@
+[meadowcreekhs]
+5 second crawl delay
+table = 'class="fsConstituentColumnLayout_2 fsStyleAutoclear"'
+  namelink = 'class="fsConstituentProfileLink"' -->click
+    popup = id = 'fsEl_55800_0_DialogContent'
+    full name = 'fsFullName' --class
+        firstname = 'fsFullNameFirst' --class
+        lastname = 'fsFullNameLast' --class
+    Title = 'fsProfileSectionData fsTitle' --class
+        titlevalue = 'fsProfileSectionFieldValue' --class
+    department = 'fsProfileSectionData fsDepartment' --class
+        departmentvalue = 'fsProfileSectionFieldValue' --class
+    contactinfo = 'fsProfileSection fsProfileSection8 fsStyleAutoclear' --class
+        schoolemail = 'fsProfileSectionSpecialData fsEmail fsEmailSchool'--class
+            schoolemailid= 'fsEmail-55800-0' --id
+If scraping multiple pages, use threading + explicit waits.
+can use http request instead!
+
+------------------------------------------------
+--> use request to load home get page link
+     https://meadowcreekhs.gcpsk12.org/directory
+     httprequesturlhome
+--> get all ids each faculty in pages
+
+
+
+
