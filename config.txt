@@ -21,7 +21,13 @@ can use http request instead!
      https://meadowcreekhs.gcpsk12.org/directory
      httprequesturlhome
 --> get all ids each faculty in pages
-
-
-
-
+-----------------------------------------------------------------------------
+https://calbaptist.edu/faculty-directory/?page=69 --> brute force pages
+look for class="Faculty"
+table = 'class="Faculty"'
+  namelink = 'class="Faculty__content zero"' -->click
+    full name = 'h2'
+    Title = class="Faculty__titles"
+    department = None
+    phone = <p>[1]
+    schoolemail = <p>[1][0]>

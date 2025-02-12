@@ -1,33 +1,12 @@
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.support.select import Select
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
-from selenium.webdriver.chrome.options import Options
 import requests
 import stringmanipulation as sm
 import aiohttp
 import asyncio
-import json
 import time
+import pandas as pd
+from datetime import datetime
 
-def openbrowser(url):
-    options = Options() #Chrome
-    #options.add_argument("--headless")
-
-    service = Service(ChromeDriverManager().install())
-    wd = webdriver.Chrome(service=service, options=options)  # Chrome
-    wd.implicitly_wait(30)
-    wd.maximize_window()
-    wd.get(url)
-    wait = WebDriverWait(wd, 40)
-    wd.close()
-    return wd, wait
 
 def get_pages(url):
     headers = {"User-Agent": "Mozilla/5.0"}
@@ -88,38 +67,52 @@ async def fetch(session, id_):
             department = field_values[1].text.strip() if len(field_values) > 1 else None
             title = field_values[2].text.strip() if len(field_values) > 2 else None
 
+            now = datetime.now()
+
+            # Format the date and time
+            formatted_now = now.strftime("%Y-%m-%d %H:%M:%S")
+
             data = {
-                "firstname": first_name,
-                "lastname": last_name,
-                "title": title,
-                "department": department,
-                "email": email
+                "First Name": first_name,
+                "Last Name": last_name,
+                "Title": title,
+                "Department": department,
+                "Phone Number": None,
+                "Email Address": email,
+                "School Type": 'Highschool',
+                "School Name": 'Meadowcreek High School',
+                "Scraped At": formatted_now
             }
 
-            # Convert to JSON format
-            json_output = json.dumps(data, indent=4)
+            df = pd.DataFrame([data])
             print(f"Scraped {url} successfully!")
-            print(json_output)
-
+            # print(json_output)
+            return df
         else:
-                print("Error: Failed to retrieve the page. Status Code:", response.status_code)
+            print("Error: Failed to retrieve the page. Status Code:", response.status_code)
 
 async def scrape_all(id_all):
     async with aiohttp.ClientSession() as session:
-        results = []
+        df = pd.DataFrame()
         for url in id_all:
             start_time = time.time()
             soup = await fetch(session, url)
-            results.append(soup)
+            df = pd.concat([df, pd.DataFrame(soup)], ignore_index=True)
             elapsed_time = time.time() - start_time
             if elapsed_time < 5:
                 await asyncio.sleep(5 - elapsed_time)  # Ensure minimum delay
-        return results
+        return df
 
-all_pages = get_pages(r'https://meadowcreekhs.gcpsk12.org/directory')
+async def run_meadows():
+    all_pages = get_pages(r'https://meadowcreekhs.gcpsk12.org/directory')
 
-nested_id = []
-for page in all_pages: #compile ALL IDS
-    nested_id.append(get_id(page))
-all_ids = list(set([item for sublist in nested_id for item in sublist]))
-asyncio.run(scrape_all(all_ids))
+    nested_id = []
+    for page in all_pages: #compile ALL IDS
+        nested_id.append(get_id(page))
+        time.sleep(5)
+    all_ids = list(set([item for sublist in nested_id for item in sublist]))
+    loop = asyncio.get_running_loop()
+    if loop.is_running():  # If loop is already running, create a task
+        return await scrape_all(all_ids)
+    else:
+        return asyncio.run(scrape_all(all_ids))
