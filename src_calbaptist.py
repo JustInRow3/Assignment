@@ -73,7 +73,7 @@ async def fetch(session, page_):
                     fullname = cell.find('h2').get_text(strip=True)
                     fullname_parsed = fullname.split(",")[0]
                     if fullname_parsed.split()[-1] == 'Jr.':
-                        fname = fullname_parsed.split()[:-2]
+                        fname = " ".join(fullname_parsed.split()[:-2])
                         lname = fullname_parsed.split()[-2]
                     else:
                         fname = " ".join(fullname_parsed.split()[:-1])

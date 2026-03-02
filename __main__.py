@@ -5,7 +5,7 @@ import pandas as pd
 
 
 async def main():
-    meadows = await src.run_meadows()
+    # meadows = await src.run_meadows()
     cbu = await src_calbaptist.run_cbu()
     all_data = pd.concat([meadows, pd.DataFrame(cbu)], ignore_index=True)
     df = pd.DataFrame(all_data)
